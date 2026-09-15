@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Photo Resizer — Resize Images Online</title>
+<meta name="description" content="Free browser-based photo resizer. Resize and download JPG, PNG or WebP images without uploading them.">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#f5f7fb;color:#172033}header{padding:42px 20px 24px;text-align:center}h1{margin:0 0 10px;font-size:38px}header p{margin:0;color:#667085}.app{max-width:900px;margin:0 auto 50px;padding:0 20px}.card{background:white;border:1px solid #e5e7eb;border-radius:20px;padding:28px;box-shadow:0 10px 30px #0000000a}.drop{border:2px dashed #b8c0cc;border-radius:16px;padding:42px;text-align:center;cursor:pointer}.drop:hover{background:#f8fafc}.drop strong{display:block;font-size:20px;margin-bottom:7px}.drop span{color:#667085}.controls{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:22px}label{font-size:14px;font-weight:650}input,select,button{width:100%;margin-top:7px;border:1px solid #d0d5dd;border-radius:10px;padding:11px;font:inherit;background:#fff}input[type=range]{padding:0}button{border:0;background:#111827;color:white;font-weight:700;cursor:pointer}button.secondary{background:#eef2f7;color:#172033}.row{display:flex;gap:10px;align-items:center;margin-top:12px}.row input{width:auto;margin:0}.preview{display:none;grid-template-columns:1fr 1fr;gap:18px;margin-top:24px}.preview img{width:100%;max-height:360px;object-fit:contain;background:#f3f4f6;border-radius:12px}.panel{background:#f8fafc;border-radius:14px;padding:16px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.stat{background:white;border:1px solid #e5e7eb;border-radius:10px;padding:10px}.stat small{display:block;color:#667085}.actions{display:flex;gap:10px;margin-top:16px}.actions button{flex:1}.note{text-align:center;color:#667085;font-size:13px;margin-top:18px}@media(max-width:650px){h1{font-size:30px}.controls,.preview{grid-template-columns:1fr}.drop{padding:30px 16px}.card{padding:18px}}
+</style></head>
+<body><header><h1>Photo Resizer</h1><p>Resize, convert and download your photos — right in your browser.</p></header>
+<main class="app"><section class="card"><div class="drop" id="drop"><strong>📷 Choose a photo</strong><span>Click here or drag & drop an image</span><input id="file" type="file" accept="image/*" hidden></div>
+<div class="controls"><div><label>Width (px)</label><input id="w" type="number" min="1" placeholder="e.g. 800"></div><div><label>Height (px)</label><input id="h" type="number" min="1" placeholder="e.g. 600"></div><div><label>Output format</label><select id="format"><option value="image/jpeg">JPG</option><option value="image/png">PNG</option><option value="image/webp">WebP</option></select></div><div><label>Quality: <span id="qv">90%</span></label><input id="quality" type="range" min="10" max="100" value="90"></div></div>
+<div class="row"><input id="lock" type="checkbox" checked><label for="lock">Keep aspect ratio</label></div>
+<div class="actions"><button id="resize">Resize Photo</button><button class="secondary" id="reset">Reset</button></div>
+<div class="preview" id="preview"><div><h3>Original</h3><img id="original"></div><div><h3>Resized</h3><img id="result"></div></div>
+<div class="panel" id="info" style="display:none"><div class="stats"><div class="stat"><small>Original</small><b id="origInfo">—</b></div><div class="stat"><small>New size</small><b id="newInfo">—</b></div></div><button id="download" style="margin-top:14px">⬇ Download Resized Photo</button></div>
+<p class="note">Your photo is processed locally in your browser. It is not uploaded to a server.</p></section></main>
+<script>
+const $=id=>document.getElementById(id);let img=new Image(),file=null,ratio=1;
+$('drop').onclick=()=>$('file').click();$('file').onchange=e=>load(e.target.files[0]);
+$('drop').ondragover=e=>{e.preventDefault()};$('drop').ondrop=e=>{e.preventDefault();load(e.dataTransfer.files[0])};
+function load(f){if(!f||!f.type.startsWith('image/'))return;file=f;const r=new FileReader();r.onload=e=>{img.onload=()=>{ratio=img.width/img.height;$('w').value=img.width;$('h').value=img.height;$('original').src=e.target.result;$('preview').style.display='grid';$('origInfo').textContent=`${img.width} × ${img.height}`};img.src=e.target.result};r.readAsDataURL(f)}
+$('w').oninput=()=>{if($('lock').checked&&img.height)$('h').value=Math.round($('w').value/ratio)};$('h').oninput=()=>{if($('lock').checked&&img.width)$('w').value=Math.round($('h').value*ratio)};
+$('quality').oninput=()=>{$('qv').textContent=$('quality').value+'%'};
+let output=null;$('resize').onclick=()=>{if(!file||!img.width)return alert('Please choose an image first.');let w=Math.max(1,parseInt($('w').value)||img.width),h=Math.max(1,parseInt($('h').value)||img.height);const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');if($('format').value==='image/jpeg'){x.fillStyle='#fff';x.fillRect(0,0,w,h)}x.drawImage(img,0,0,w,h);output=c.toDataURL($('format').value,Number($('quality').value)/100);$('result').src=output;$('newInfo').textContent=`${w} × ${h}`;$('info').style.display='block'};
+$('download').onclick=()=>{if(!output)return;const ext={"image/jpeg":"jpg","image/png":"png","image/webp":"webp"}[$('format').value];const a=document.createElement('a');a.href=output;a.download='resized-photo.'+ext;a.click()};
+$('reset').onclick=()=>location.reload();
+</script></body></html>
